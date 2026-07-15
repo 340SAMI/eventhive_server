@@ -149,9 +149,37 @@ async function run() {
 
 
 
-      app.get("/api/listings/:id",verifyToken, async (req:Request, res:Response) => {
+     
+           app.get("/api/listings/user", verifyToken, async (req:AuthRequest, res:Response) => {
+
+        
+            try { 
+
+               console.log("req.user:", req.user);
+        console.log("ownerId:", req.user?._id.toString());
+
+                const ownerId = req.user._id; // set by your verifyToken middleware
+
+                const events = await eventCollection
+                    .find({ ownerId })
+                    .sort({ createdAt: -1 })
+                    .toArray();
+
+                res.send(events);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send({ message: "Failed to fetch your events" });
+            }
+        });
+     
+     
+     
+     
+     
+        app.get("/api/listings/:id",verifyToken, async (req:Request, res:Response) => {
           try {
-              const  id= req.params.id;
+              const id= req.params.id;
+              console.log(id)
 
               if (typeof id !== "string") {
                   return res.status(400).send({ message: "Invalid id" });
@@ -169,6 +197,9 @@ async function run() {
               res.status(500).send({ message: "Failed to fetch event" });
           }
       });
+
+
+
 
 
 
