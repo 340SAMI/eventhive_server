@@ -117,6 +117,60 @@ async function run() {
         })
 
 
+        app.get("/api/listings", async (req:AuthRequest, res:Response) => {
+            try {
+                const { category, ticketType, search } = req.query;
+
+                const query:any = {};
+
+                if (category && category !== "all") {
+                    query.category = category;
+                }
+
+                if (ticketType && ticketType !== "all") {
+                    query.ticketType = ticketType;
+                }
+
+                if (search) {
+                    query.title = { $regex: search, $options: "i" };
+                }
+
+                const events = await eventCollection
+                    .find(query)
+                    .sort({ createdAt: -1 })
+                    .toArray();
+
+                res.send(events);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send({ message: "Failed to fetch events" });
+            }
+        });
+
+
+
+      app.get("/api/listings/:id",verifyToken, async (req:Request, res:Response) => {
+          try {
+              const  id= req.params.id;
+
+              if (typeof id !== "string") {
+                  return res.status(400).send({ message: "Invalid id" });
+              }
+              
+              const event = await eventCollection.findOne({ _id: new ObjectId(id) });
+
+              if (!event) {
+                  return res.status(404).send({ message: "Event not found" });
+              }
+
+              res.send(event);
+          } catch (error) {
+              console.error(error);
+              res.status(500).send({ message: "Failed to fetch event" });
+          }
+      });
+
+
 
 
     
